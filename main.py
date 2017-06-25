@@ -6,7 +6,7 @@ import requests
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 import func
-from lib.pybloom import BloomFilter
+from lib.pybloom.pybloom import  BloomFilter
 
 def CreatUrls_lvl1():
     urls_lvl = ['http://www.moe.gov.cn/s78/A05/A05_zcwj/index.html']
@@ -152,3 +152,4 @@ def test():
 # article_list = CreatItems_lvl2(page_list)
 # ParseItem(article_list)
 
+f = BloomFilter(capacity=10000, error_rate=0.001)
