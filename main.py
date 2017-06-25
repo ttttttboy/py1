@@ -32,24 +32,26 @@ def CreatItems_lvl2(urls_lvl1):
         tag_div = soup.find('div', class_='sj_cen').find('ul')
         for li in tag_div.children:
             # todo 美化一下，找到去除空行的方法
+            # todo link txt date 任一一个为空 抛出异常
             if li != '\n':
-                txt = li.contents[0].string
+                tmp = dict(li.contents[0].attrs)["title"]  # 获取li下第一个tag里title的属性值
+                title = func.fineName4Win(tmp)
                 link = urljoin(base_url, li.a['href'])  # 用于重定向../../url.com
                 date = li.contents[1].string
-                Item_lvl2 = [txt, date, link]
+                Item_lvl2 = [title, date, link]
                 Items_lvl2.append(Item_lvl2)
 
     return Items_lvl2
 
 def ParseItem(Items_lvl2):
     i = 1
-    url_pool = func.file2set(os.getcwd() + '\\log\\url_pool.txt')
-    p = open(os.getcwd() + '\\log\\url_pool.txt', 'a')
+    url_pool = func.file2BloomFilter(path_url_pool)
+    url_pool_file = open(path_url_pool, 'a')
     for cur_Item in Items_lvl2:
-        if cur_Item[2] not in url_pool:
+        if (cur_Item[2] in url_pool) == False:
             try:
                 buffer = ''
-                full_path = os.getcwd() + '\\output\\' + cur_Item[1] + ' ' + func.fineName4Win(cur_Item[0]) + '.txt'
+                path_output = path_output_folder + cur_Item[1] + ' ' + func.fineName4Win(cur_Item[0]) + '.txt'
                 page_html = requests.get(cur_Item[2], timeout=3).content.decode('utf-8', 'ignore')
                 soup = BeautifulSoup(page_html, 'html.parser')
 
@@ -64,15 +66,15 @@ def ParseItem(Items_lvl2):
                     print("Error %s!\n" % cur_Item[2])
 
                 try:
-                    with open(full_path, 'w', encoding='utf-8') as f:   # 以utf8编码新建文件，防止utf8 & GBK转换出问题
+                    with open(path_output, 'w', encoding='utf-8') as f:   # 以utf8编码新建文件，防止utf8 & GBK转换出问题
                         f.write(buffer)
+
                    # 记录已爬过
-                    # p.write(func.hash4string(cur_Item[2]) + '\n')
-                    p.write(cur_Item[2] + '\n')
+                    url_pool_file.write(cur_Item[2] + '\n')
                 except IOError as ioerr:
                     print(ioerr)
-                    with open(os.getcwd() + '\\log\\io_err.log', 'a') as log_f:
-                        log_f.write(ioerr + full_path + '\n')
+                    with open(path_ioerr_log, 'a') as log_f:
+                        log_f.write(ioerr + path_output + '\n')
                     pass
 
                 print('%d # OK %s %s' % (i, cur_Item[1], cur_Item[0]))
@@ -81,12 +83,12 @@ def ParseItem(Items_lvl2):
 
             except requests.exceptions.RequestException as request_err:
                 print(request_err)
-                with open(os.getcwd() + '\\log\\con_log.log','a') as log_f:
+                with open(path_requestErr_log,'a') as log_f:
                     log_f.writelines(request_err)
         else:
             print('%d # Skip %s %s' % (i, cur_Item[1], cur_Item[0]))
             i=i+1
-    p.close()
+    url_pool_file.close()
 
 
 def ParseItem_pattern1(cur_Item, soup):
@@ -149,7 +151,12 @@ def test():
 # t4 = [t3[0]]
 # ParseItem(t4)
 #
-# page_list = CreatUrls_lvl1()
-# article_list = CreatItems_lvl2(page_list)
-# ParseItem(article_list)
+path_url_pool = os.getcwd() + '/log/url_pool.txt'
+path_ioerr_log = os.getcwd() + '/log/io_err.log'
+path_output_folder = os.getcwd() + '/output/'
+path_requestErr_log = os.getcwd() + '/log/request_err.log'
 
+
+page_list = CreatUrls_lvl1()
+article_list = CreatItems_lvl2(page_list)
+ParseItem(article_list)

@@ -18,21 +18,25 @@ def isByteInHashPool(target, hashPool):
     return target in hashPool
 
 
-def file2set(file):
+def file2BloomFilter(file):
     """
 
     :type file: string
     :return: set
     """
-    s = set()
+    from pybloom import BloomFilter
+    bf = BloomFilter(capacity=1000, error_rate=0.001)
     with open(file, 'r') as f:
         for line in f:
-            s.add(line)
-    return s
+            _ = bf.add(line.strip('\n'))
+    return bf
 
 
 def fineName4Win(old_name):
     import re
+    new_name = 'Error'
     rstr = r"[\/\\\:\*\?\"\<\>\|]"  # '/\:*?"<>|'
-    new_name = re.sub(rstr, "", old_name)
+    if old_name is not None:
+        new_name = re.sub(rstr, " ", old_name)
     return new_name
+
