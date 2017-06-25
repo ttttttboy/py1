@@ -146,7 +146,8 @@ def test():
 #        'http://www.moe.gov.cn/jyb_xxgk/moe_1777/moe_1779/201704/t20170413_302466.html']]
 # t4 = [t3[0]]
 # ParseItem(t4)
-page_list = CreatUrls_lvl1()
-article_list = CreatItems_lvl2(page_list)
-ParseItem(article_list)
+#
+# page_list = CreatUrls_lvl1()
+# article_list = CreatItems_lvl2(page_list)
+# ParseItem(article_list)
 
