@@ -6,6 +6,7 @@ import requests
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 import func
+from lib.pybloom import BloomFilter
 
 def CreatUrls_lvl1():
     urls_lvl = ['http://www.moe.gov.cn/s78/A05/A05_zcwj/index.html']
