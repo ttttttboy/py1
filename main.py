@@ -5,8 +5,9 @@ import re
 import requests
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
+from pybloom import BloomFilter # in github
 import func
-from lib.pybloom.pybloom import  BloomFilter
+
 
 def CreatUrls_lvl1():
     urls_lvl = ['http://www.moe.gov.cn/s78/A05/A05_zcwj/index.html']
@@ -71,7 +72,7 @@ def ParseItem(Items_lvl2):
                 except IOError as ioerr:
                     print(ioerr)
                     with open(os.getcwd() + '\\log\\io_err.log', 'a') as log_f:
-                        log_f.write(request_err + full_path + '\n')
+                        log_f.write(ioerr + full_path + '\n')
                     pass
 
                 print('%d # OK %s %s' % (i, cur_Item[1], cur_Item[0]))
@@ -152,4 +153,3 @@ def test():
 # article_list = CreatItems_lvl2(page_list)
 # ParseItem(article_list)
 
-f = BloomFilter(capacity=10000, error_rate=0.001)
