@@ -6,69 +6,73 @@ import queue
 import requests
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
-from pybloom import BloomFilter # in github
+from pybloom import BloomFilter, ScalableBloomFilter # in github
+import parser4me
 import func
-import parser
+
 
 URL_QUEUE = queue.Queue(0)
 path_url_pool = os.getcwd() + '/log/url_pool.txt'
 path_ioerr_log = os.getcwd() + '/log/io_err.log'
 path_output_folder = os.getcwd() + '/output/'
 path_requestErr_log = os.getcwd() + '/log/request_err.log'
+path_checked_url_file = os.getcwd() +'/log/checked_url_pool.tofile'
 
-def CreatUrlQueue():
+def CreatURLQueue():
+    """
+
+    :return: Queue
+    """
     q = queue.Queue(0)
     urls_lv1 = []
-    urls_lv1.append('http://www.moe.edu.cn/jyb_xxgk/moe_1777/moe_1778/index.html') #  财政部中央文件
-    for i in range(1,5+1):
-        urls_lv1.append('http://www.moe.edu.cn/jyb_xxgk/moe_1777/moe_1778/index_' + str(i) + '.html')
+    urls_lv1.append('http://www.moe.edu.cn/jyb_xxgk/moe_1777/moe_1778/index.html') #  财政部-中央文件
+    # for i in range(1,5+1):
+    #     urls_lv1.append('http://www.moe.edu.cn/jyb_xxgk/moe_1777/moe_1778/index_' + str(i) + '.html')
 
     for url_lv1 in urls_lv1:
-        urls_lv2 = GetUrlListByUrlLv1(url_lv1)
+        urls_lv2 = GetItemListByUrlLv1(url_lv1)
         for u in urls_lv2:
             URL_QUEUE.put(u)
+            # print(u)
 
-
-def GetUrlListByUrlLv1(url_lv1):
+def GetItemListByUrlLv1(url_lv1):
     """
     :param url_lv1:
     :return: struct is [title,date,link] [] [] []..... for the page url_lv1
     """
     page_html = requests.get(url_lv1).content.decode('utf-8')
-    res =  parser_2(url_lv1, page_html)
+    res =  parser4me.parser_2(url_lv1, page_html)
     return  res
 
 
-def parser_2(page_url, page_html):
-    """
-    用于分析教育部-重要文件-<li>
-    :return results[[title, date, link],[   ],[   ]...]
-    """
-    base_url = page_url
-    soup = BeautifulSoup(page_html, "html.parser")
-    results = []
 
-    # locate dom_li in html code
-    tag_div = soup.find('div', id='wcmpagehtml').find('ul')
-    for li in tag_div.children:
-        # todo 美化一下，找到去除空行的方法
-        # todo link txt date 任一一个为空 抛出异常
-        if li != '\n':
-            # todo 更好的方法定为 <a>
-            tmp = dict(li.contents[1].attrs)["title"]  # 获取li下第一个tag里title的属性值
-            title = func.fineName4Win(tmp)
-            link = urljoin(base_url, li.a['href'])  # 用于重定向../../url.com
-            date = li.contents[0].string
-            results.append([title, date, link])
 
     return results
+
+def ParseQueue():
+    # Load Checked Urls File
+    if os.path.isfile(path_checked_url_file):
+        with open(path_checked_url_file,'rb') as rf:
+            checked_url_pool = BloomFilter.fromfile(rf)
+    else:
+        checked_url_pool = ScalableBloomFilter(initial_capacity=1000, error_rate= 0.001,
+                                               mode=ScalableBloomFilter.SMALL_SET_GROWTH)
+
+    # Get each Item from Queue
+    URL_QUEUE.put_nowait(None)  # sign the end of Queue
+    for item in iter(URL_QUEUE.get_nowait, None):
+        cur_url = item[2]
+
+        if (cur_url in checked_url_pool) == False:  # cur_url never checked
+            page_html = requests.get(cur_url, timeout=3).content.decode('utf-8', 'ignore')
+            buffer = parser4me.parser_2_1(item, page_html)
+
 
 def CreatUrls_lvl1():
     urls_lvl = ['http://www.moe.gov.cn/s78/A05/A05_zcwj/index.html']
     for i in range(1, 17 + 1):
         urls_lvl.append('http://www.moe.gov.cn/s78/A05/A05_zcwj/index_' + str(i) + '.html')
     return urls_lvl
-
 def CreatItems_lvl2(urls_lvl1):
     # structure: [title,date,link]
     #         [...]
@@ -96,7 +100,6 @@ def CreatItems_lvl2(urls_lvl1):
                 Items_lvl2.append(Item_lvl2)
 
     return Items_lvl2
-
 def ParseItem(Items_lvl2):
     i = 1
     url_pool = func.file2BloomFilter(path_url_pool)
@@ -191,13 +194,19 @@ def ParseItem_pattern2(cur_Item, soup):
 
 
 def test():
-    t = ['http://www.baidd.com', 'http://www.google.com','http://www.adafdf.com']
-    for i in t:
-        try:
-            r= requests.get(i, timeout=2)
-        except requests.exceptions.RequestException as err:
-            print(err)
-    return 0
+    kkk_path = path_url_pool = os.getcwd() + '/kkk.tofile'
+    f = open(kkk_path, 'rb')
+    # kkk = ScalableBloomFilter(initial_capacity=1000,
+    #                           error_rate=0.001,
+    #                           mode=ScalableBloomFilter.SMALL_SET_GROWTH)
+    #
+    # kkk.add(1)
+    # kkk.add(2)
+    # kkk.add(3)
+    # kkk.tofile(f)
+    kkk= ScalableBloomFilter.fromfile(f)
+    print(2 in kkk)
+    f.close()
 # t3 = [['ttttt', '2017-04-20 ',
 #        'http://www.moe.gov.cn/s78/A05/A05_ztzl/s7507/s7508/s7509/201308/t20130813_155643.html'], \
 #       ['财政部 教育部 人民银行 银监会关于进一步落实高等教育学生资助政策的通知', '2017-04-13 ',
@@ -206,12 +215,16 @@ def test():
 # ParseItem(t4)
 #
 def main():
-    CreatUrlQueue()
+    CreatURLQueue()
+    ParseQueue()
+    # test()
+
+
+if __name__=="__main__":
+    main()
+
 
 #
 # page_list = CreatUrls_lvl1()
 # article_list = CreatItems_lvl2(page_list)
 # ParseItem(article_list)
-if __name__=="__main__":
-    print("main")
-    main()

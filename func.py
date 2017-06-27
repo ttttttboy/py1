@@ -26,7 +26,7 @@ def file2BloomFilter(file):
     """
     from pybloom import BloomFilter
     bf = BloomFilter(capacity=1000, error_rate=0.001)
-    with open(file, 'r') as f:
+    with open(file, 'wb') as f:
         for line in f:
             _ = bf.add(line.strip('\n'))
     return bf
