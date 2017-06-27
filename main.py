@@ -2,12 +2,66 @@
 import os
 import time
 import re
+import queue
 import requests
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from pybloom import BloomFilter # in github
 import func
+import parser
 
+URL_QUEUE = queue.Queue(0)
+path_url_pool = os.getcwd() + '/log/url_pool.txt'
+path_ioerr_log = os.getcwd() + '/log/io_err.log'
+path_output_folder = os.getcwd() + '/output/'
+path_requestErr_log = os.getcwd() + '/log/request_err.log'
+
+def CreatUrlQueue():
+    q = queue.Queue(0)
+    urls_lv1 = []
+    urls_lv1.append('http://www.moe.edu.cn/jyb_xxgk/moe_1777/moe_1778/index.html') #  财政部中央文件
+    for i in range(1,5+1):
+        urls_lv1.append('http://www.moe.edu.cn/jyb_xxgk/moe_1777/moe_1778/index_' + str(i) + '.html')
+
+    for url_lv1 in urls_lv1:
+        urls_lv2 = GetUrlListByUrlLv1(url_lv1)
+        for u in urls_lv2:
+            URL_QUEUE.put(u)
+
+
+def GetUrlListByUrlLv1(url_lv1):
+    """
+    :param url_lv1:
+    :return: struct is [title,date,link] [] [] []..... for the page url_lv1
+    """
+    page_html = requests.get(url_lv1).content.decode('utf-8')
+    res =  parser_2(url_lv1, page_html)
+    return  res
+
+
+def parser_2(page_url, page_html):
+    """
+    用于分析教育部-重要文件-<li>
+    :return results[[title, date, link],[   ],[   ]...]
+    """
+    base_url = page_url
+    soup = BeautifulSoup(page_html, "html.parser")
+    results = []
+
+    # locate dom_li in html code
+    tag_div = soup.find('div', id='wcmpagehtml').find('ul')
+    for li in tag_div.children:
+        # todo 美化一下，找到去除空行的方法
+        # todo link txt date 任一一个为空 抛出异常
+        if li != '\n':
+            # todo 更好的方法定为 <a>
+            tmp = dict(li.contents[1].attrs)["title"]  # 获取li下第一个tag里title的属性值
+            title = func.fineName4Win(tmp)
+            link = urljoin(base_url, li.a['href'])  # 用于重定向../../url.com
+            date = li.contents[0].string
+            results.append([title, date, link])
+
+    return results
 
 def CreatUrls_lvl1():
     urls_lvl = ['http://www.moe.gov.cn/s78/A05/A05_zcwj/index.html']
@@ -151,12 +205,13 @@ def test():
 # t4 = [t3[0]]
 # ParseItem(t4)
 #
-path_url_pool = os.getcwd() + '/log/url_pool.txt'
-path_ioerr_log = os.getcwd() + '/log/io_err.log'
-path_output_folder = os.getcwd() + '/output/'
-path_requestErr_log = os.getcwd() + '/log/request_err.log'
+def main():
+    CreatUrlQueue()
 
-
-page_list = CreatUrls_lvl1()
-article_list = CreatItems_lvl2(page_list)
-ParseItem(article_list)
+#
+# page_list = CreatUrls_lvl1()
+# article_list = CreatItems_lvl2(page_list)
+# ParseItem(article_list)
+if __name__=="__main__":
+    print("main")
+    main()
