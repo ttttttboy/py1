@@ -12,22 +12,19 @@ import func
 
 
 URL_QUEUE = queue.Queue(0)
-path_url_pool = os.getcwd() + '/log/url_pool.txt'
-path_ioerr_log = os.getcwd() + '/log/io_err.log'
-path_output_folder = os.getcwd() + '/output/'
-path_requestErr_log = os.getcwd() + '/log/request_err.log'
-path_checked_url_file = os.getcwd() +'/log/checked_url_pool.tofile'
+path_url_pool = os.getcwd() + r'\log\url_pool.txt'
+path_ioerr_log = os.getcwd() + r'\log\io_err.log'
+path_output_folder = os.getcwd() + r'\output'
+path_requestErr_log = os.getcwd() + r'\log\request_err.log'
+path_checked_url_file = os.getcwd() + r'\log\checked_url_pool.bf'
 
 def CreatURLQueue():
     """
 
-    :return: Queue
+    :return: None
     """
     q = queue.Queue(0)
-    urls_lv1 = []
-    urls_lv1.append('http://www.moe.edu.cn/jyb_xxgk/moe_1777/moe_1778/index.html') #  财政部-中央文件
-    # for i in range(1,5+1):
-    #     urls_lv1.append('http://www.moe.edu.cn/jyb_xxgk/moe_1777/moe_1778/index_' + str(i) + '.html')
+    urls_lv1 = parser4me.CreatStartURLs_3()
 
     for url_lv1 in urls_lv1:
         urls_lv2 = GetItemListByUrlLv1(url_lv1)
@@ -41,7 +38,7 @@ def GetItemListByUrlLv1(url_lv1):
     :return: struct is [title,date,link] [] [] []..... for the page url_lv1
     """
     page_html = requests.get(url_lv1).content.decode('utf-8')
-    res =  parser4me.parser_2(url_lv1, page_html)
+    res =  parser4me.parser_3(url_lv1, page_html)
     return  res
 
 
@@ -53,19 +50,36 @@ def ParseQueue():
     # Load Checked Urls File
     if os.path.isfile(path_checked_url_file):
         with open(path_checked_url_file,'rb') as rf:
-            checked_url_pool = BloomFilter.fromfile(rf)
+            checked_url_pool = ScalableBloomFilter.fromfile(rf)
+            print("bf: Read pybloom from %s.\n" % path_checked_url_file)
     else:
         checked_url_pool = ScalableBloomFilter(initial_capacity=1000, error_rate= 0.001,
                                                mode=ScalableBloomFilter.SMALL_SET_GROWTH)
+        print("bf: Creat pybloom")
 
     # Get each Item from Queue
+    i = 1
     URL_QUEUE.put_nowait(None)  # sign the end of Queue
     for item in iter(URL_QUEUE.get_nowait, None):
         cur_url = item[2]
 
+
         if (cur_url in checked_url_pool) == False:  # cur_url never checked
+            time.sleep(0.5)
             page_html = requests.get(cur_url, timeout=3).content.decode('utf-8', 'ignore')
-            buffer = parser4me.parser_2_1(item, page_html)
+            buffer = parser4me.parser_3_1(item, page_html)
+            with open(path_output_folder +os.path.sep + item[1] + item[0] + ".txt", 'w', encoding='utf-8') as resf:
+                resf.write(buffer)
+                print("%s OK! to file %s" % (i, item[0]))
+            checked_url_pool.add(cur_url)
+            i += 1
+        else:
+            print("Skip %s" % i)
+            i += 1
+
+        with open(path_checked_url_file,'wb') as wf:
+            checked_url_pool.tofile(wf)
+            print("bf: Write pybloom to %s " % path_checked_url_file)
 
 
 def CreatUrls_lvl1():
