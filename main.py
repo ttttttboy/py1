@@ -2,49 +2,62 @@
 import os
 import time
 import re
-import queue
+# import queue
+import pickle
+from collections import deque
 import requests
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
-from pybloom import BloomFilter, ScalableBloomFilter # in github
+from pybloom import ScalableBloomFilter # in github
 import parser4me
 import func
 
 
-URL_QUEUE = queue.Queue(0)
+# URL_QUEUE = queue.Queue(0)
+URL_DEQUE = deque()
 path_url_pool = os.getcwd() + r'\log\url_pool.txt'
 path_ioerr_log = os.getcwd() + r'\log\io_err.log'
 path_output_folder = os.getcwd() + r'\output'
 path_requestErr_log = os.getcwd() + r'\log\request_err.log'
 path_checked_url_file = os.getcwd() + r'\log\checked_url_pool.bf'
+path_serialization_QUEUE = os.getcwd() +r'\log\serial_QUEUE.txt'
 
 def CreatURLQueue():
     """
 
     :return: None
     """
-    q = queue.Queue(0)
-    urls_lv1 = parser4me.CreatStartURLs_3()
+    urls_lv1 = parser4me.CreatStartURLs_4()
 
-    for url_lv1 in urls_lv1:
-        urls_lv2 = GetItemListByUrlLv1(url_lv1)
-        for u in urls_lv2:
-            URL_QUEUE.put(u)
-            # print(u)
+    if os.path.isfile(path_serialization_QUEUE):
+        global URL_DEQUE
+        with open(path_serialization_QUEUE, 'rb') as ser_f:
+            URL_DEQUE = pickle.load(ser_f)
+
+        print("Load URL_QUEUE！")
+    else:
+        for url_lv1 in urls_lv1:
+            urls_lv2 = GetItemListByUrlLv1(url_lv1)
+            for u in urls_lv2:
+                # todo 分布式改成QUEUE https://stackoverflow.com/questions/16754116/pickle-queue-objects-in-python
+                # URL_QUEUE.put(u)
+                URL_DEQUE.appendleft(u)
+        with open(path_serialization_QUEUE, 'wb') as ser_f:
+            pickle.dump(URL_DEQUE,ser_f,pickle.HIGHEST_PROTOCOL)
+        print("Dummp URL_QUEUE! ")
 
 def GetItemListByUrlLv1(url_lv1):
     """
     :param url_lv1:
     :return: struct is [title,date,link] [] [] []..... for the page url_lv1
     """
+    time.sleep(0.3)
     page_html = requests.get(url_lv1).content.decode('utf-8')
-    res =  parser4me.parser_3(url_lv1, page_html)
+    print("Getting %s" % url_lv1)
+    res =  parser4me.parser_4(url_lv1, page_html)
     return  res
 
 
-
-
-    return results
 
 def ParseQueue():
     # Load Checked Urls File
@@ -59,16 +72,18 @@ def ParseQueue():
 
     # Get each Item from Queue
     i = 1
-    URL_QUEUE.put_nowait(None)  # sign the end of Queue
-    for item in iter(URL_QUEUE.get_nowait, None):
+    # URL_QUEUE.put_nowait(None)  # sign the end of Queue
+    # for item in iter(URL_QUEUE.get_nowait, None):
+    #     cur_url = item[2]
+    URL_DEQUE.appendleft(None)
+    for item in iter(URL_DEQUE.pop, None):
         cur_url = item[2]
 
-
         if (cur_url in checked_url_pool) == False:  # cur_url never checked
-            time.sleep(0.5)
+            time.sleep(1)
             page_html = requests.get(cur_url, timeout=3).content.decode('utf-8', 'ignore')
-            buffer = parser4me.parser_3_1(item, page_html)
-            with open(path_output_folder +os.path.sep + item[1] + item[0] + ".txt", 'w', encoding='utf-8') as resf:
+            buffer = parser4me.parser_4_1(item, page_html)
+            with open(path_output_folder +os.path.sep + item[1] + item[0][0:128] + ".txt", 'w', encoding='utf-8') as resf:
                 resf.write(buffer)
                 print("%s OK! to file %s" % (i, item[0]))
             checked_url_pool.add(cur_url)
@@ -79,7 +94,7 @@ def ParseQueue():
 
         with open(path_checked_url_file,'wb') as wf:
             checked_url_pool.tofile(wf)
-            print("bf: Write pybloom to %s " % path_checked_url_file)
+            # print("bf: Write pybloom to %s " % path_checked_url_file)
 
 
 def CreatUrls_lvl1():
@@ -231,8 +246,21 @@ def test():
 def main():
     CreatURLQueue()
     ParseQueue()
-    # test()
 
+    # test()
+    # import pickle
+    # v = deque()
+    # v.appendleft(1)
+    # v.appendleft(2)
+    # v.appendleft(3)
+    # with open(path_serialization_QUEUE,'wb') as vf:
+    #     pickle.dump(v,vf,pickle.HIGHEST_PROTOCOL)
+    #
+    #
+    # with open(path_serialization_QUEUE,'rb') as df:
+    #     v2 = pickle.load(df)
+    #
+    print('')
 
 if __name__=="__main__":
     main()
