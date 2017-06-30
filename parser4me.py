@@ -3,7 +3,7 @@ import re
 from io import open
 from os import getcwd
 from os.path import isfile
-from func import fineName4Win
+# from func import fineName4Win
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlencode
 
@@ -189,3 +189,14 @@ def parser_4_1(item, page_html):
             res += child.getText() + '\n'
 
     return res
+
+
+
+def fineName4Win(old_name):
+    import re
+    new_name = 'Error'
+    rstr = r"[\/\\\:\*\?\"\<\>\|\s]"  # '/\:*?"<>|space'
+    if old_name is not None:
+        new_name = re.sub(rstr, "", old_name)
+    return new_name
+

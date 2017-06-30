@@ -6,27 +6,25 @@ import re
 import pickle
 from collections import deque
 import requests
-from urllib.parse import urljoin
-from bs4 import BeautifulSoup
 from pybloom import ScalableBloomFilter  # in github
 import parser4me
-import func
+
 
 # URL_QUEUE = queue.Queue(0)
 URL_DEQUE = deque()
-path_url_pool = os.getcwd() + r'\log\url_pool.txt'
-path_ioerr_log = os.getcwd() + r'\log\io_err.log'
-path_output_folder = os.getcwd() + r'\output'
-path_requestErr_log = os.getcwd() + r'\log\request_err.log'
-path_checked_url_file = os.getcwd() + r'\log\checked_url_pool.bfdat'
-path_serialization_QUEUE = os.getcwd() + r'\log\serial_QUEUE.dat'
+path_url_pool = os.getcwd() + r'\APP_log\url_pool.txt'
+path_ioerr_log = os.getcwd() + r'\APP_log\io_err.log'
+path_output_folder = os.getcwd() + r'\APP_output'
+path_requestErr_log = os.getcwd() + r'\APP_log\request_err.log'
+path_checked_url_file = os.getcwd() + r'\APP_log\checked_url_pool.bfdat'
+path_serialization_QUEUE = os.getcwd() + r'\APP_log\serial_QUEUE.dat'
 
 
 def SetUp():
-    if not os.path.isdir(os.getcwd() + r'\log'):
-        os.mkdir(os.getcwd() + r'\log')
-    if not os.path.isdir(os.getcwd() + r'\output'):
-        os.mkdir(os.getcwd() + r'\output')
+    if not os.path.isdir(os.getcwd() + r'\APP_log'):
+        os.mkdir(os.getcwd() + r'\APP_log')
+    if not os.path.isdir(os.getcwd() + r'\APP_output'):
+        os.mkdir(os.getcwd() + r'\APP_output')
 
 
 
