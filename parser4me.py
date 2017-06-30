@@ -55,20 +55,22 @@ def parser_2(page_url, page_html):
     results = []
 
     # locate dom_li in html code
-    tag_div = soup.find('div', id='wcmpagehtml').find('ul')
-    for li in tag_div.children:
-        # todo 美化一下，找到去除空行的方法
-        # todo link txt date 任一一个为空 抛出异常
-        if li != '\n':
-            # todo 更好的方法定为 <a>
-            attrs_dict = li.contents[1].attrs
-            tmp = attrs_dict.get("title")     # 获取li下第一个tag里title的属性值 as dict(li.contents[1].attrs)["title"]
-            if tmp == None:
-                tmp = li.contents[1].get_text()
-            title = fineName4Win(tmp)
-            link = urljoin(base_url, li.a['href'])  # 用于重定向../../url.com
-            date = li.contents[0].string
-            results.append([title, date, link])
+    tag_div = soup.find('div', id='wcmpagehtml').find_all('ul')
+    for ul in tag_div:
+        if not ul.find('script'): # 排除<ul> <script/> </ul>
+            for li in ul.children:
+                # todo 美化一下，找到去除空行的方法
+                # todo link txt date 任一一个为空 抛出异常
+                if li != '\n':
+                    # todo 更好的方法locate<a>
+                    attrs_dict = li.contents[1].attrs
+                    tmp = attrs_dict.get("title")     # 获取li下第一个tag里title的属性值 as dict(li.contents[1].attrs)["title"]
+                    if tmp == None:
+                        tmp = li.contents[1].get_text()
+                    title = fineName4Win(tmp)
+                    link = urljoin(base_url, li.a['href'])  # 用于重定向../../url.com
+                    date = li.contents[0].get_text()
+                    results.append([title, date, link])
     return results
 
 def parser_2_1(item, page_html):

@@ -35,8 +35,8 @@ def file2BloomFilter(file):
 def fineName4Win(old_name):
     import re
     new_name = 'Error'
-    rstr = r"[\/\\\:\*\?\"\<\>\|]"  # '/\:*?"<>|'
+    rstr = r"[\/\\\:\*\?\"\<\>\|\s]"  # '/\:*?"<>|space'
     if old_name is not None:
-        new_name = re.sub(rstr, " ", old_name)
+        new_name = re.sub(rstr, "", old_name)
     return new_name
 
