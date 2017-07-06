@@ -8,7 +8,7 @@ from collections import deque
 import requests
 from pybloom import ScalableBloomFilter  # in github
 import parser4me
-
+from ex2docx import demo_doc
 
 # URL_QUEUE = queue.Queue(0)
 URL_DEQUE = deque()
@@ -88,6 +88,7 @@ def ParseQueue():
     for item in iter(URL_DEQUE.pop, None):
         cur_url = item[2]
 
+        print("%s " % i, end='')
         if (cur_url in checked_url_pool) == False:  # cur_url never checked
             try:
                 time.sleep(0.3)
@@ -96,20 +97,23 @@ def ParseQueue():
                 print(e)
                 # URL_DEQUE.appendleft(cur_url)
                 with open(path_requestErr_log, 'a') as f_requestErr:
-                    f_requestErr.write(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())) +
+                    f_requestErr.write(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) +
                                        "Timeout " + cur_url + '\n'
                                        )
             else:
                 page_html = page_html_raw.content.decode('utf-8', 'ignore')
                 buffer = parser4me.parser_4_1(item, page_html)
-                with open(path_output_folder + os.path.sep + item[1] + item[0][0:128] + ".txt", 'w',
-                          encoding='utf-8') as resf:
-                    resf.write(buffer)
-                    print("%s OK! to file %s" % (i, item[0]))
+
+
+                # with open(path_output_folder + os.path.sep + item[1] + item[0][0:128] + ".txt", 'w',
+                #           encoding='utf-8') as resf:
+                #     resf.write(buffer)
+                #     print("%s OK! to file %s" % (i, item[0]))
+
                 checked_url_pool.add(cur_url)
                 i += 1
         else:
-            print("Skip %s" % i)
+            print("Skip!")
             i += 1
 
         with open(path_checked_url_file, 'wb') as wf:
@@ -247,10 +251,10 @@ def ParseQueue():
 
 
 def main():
-    SetUp()
-    CreatURLQueue()
-    ParseQueue()
-    # test()
+    # SetUp()
+    # CreatURLQueue()
+    # ParseQueue()
+    demo_doc()
     print('')
 
 
