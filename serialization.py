@@ -1,8 +1,9 @@
 # coding:utf-8
 #  ref: https://zhuanlan.zhihu.com/p/21716087
-import main
-import os
+import time
 from docx import Document
+from config import *
+
 
 
 def demo_doc():
@@ -17,8 +18,20 @@ def demo_doc():
     ddoc.save(demo_path)
 
 
-def pipe2File(buffer, item):
-    path_full_file = main.path_output_folder + os.path.sep + item[1] + item[0][0:128] + ".txt"
+def out2File_docx(buffer, item):
+    path_full_file = PATH_OUTPUT_FOLDER + os.path.sep + item[1] + item[0][0:128] + ".txt"
     with open(path_full_file, 'w', encoding='utf-8') as resf:
         resf.write(buffer)
         print(" OK! to file %s" % item[0])
+
+
+# normal 35.5
+def out2File_txt(buffer, item):
+    path_full_file = PATH_OUTPUT_FOLDER + os.path.sep + item[1] + item[0][0:128] + ".txt"
+    with open(path_full_file, 'w',
+              encoding='utf-8') as resf:
+        # resf.write(buffer)
+        time.sleep(8)
+        print("        #%s serialised. %s" % (item[3], item[0]))
+
+

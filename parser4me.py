@@ -37,7 +37,7 @@ def CreatStartURLs_4():
     """
     res = []
     base_url = "http://www.moe.gov.cn/was5/web/search"
-    for i in range(1, 90+1):
+    for i in range(1, 90+1):  #  1 to 90+1
         payload = {'page':i, # total items 8928. -> total pages 8928/100 = 90
                    'channelid': 277865, 'perpage':100, 'outlinepage':10, 'searchscope':'',
                    'timescope':'', 'timescopecolumn':'', 'orderby':'-SCRQ', 'towcmurl':'', 'andsen':'',
