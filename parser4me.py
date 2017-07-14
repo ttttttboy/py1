@@ -19,6 +19,7 @@ def CreatStartURLs_2():
         res.append('http://www.moe.edu.cn/jyb_xxgk/moe_1777/moe_1778/index_' + str(i) + '.html')
     return res
 
+
 def CreatStartURLs_3():
     """
     用于分析"教育部-> 重要文件-> 其他部门文件
@@ -30,6 +31,7 @@ def CreatStartURLs_3():
         res.append('http://www.moe.edu.cn/jyb_xxgk/moe_1777/moe_1779/index_' + str(i) + '.html')
     return res
 
+
 def CreatStartURLs_4():
     """
     用于分析"教育部-> 重要文件-> 教育部文件
@@ -37,13 +39,14 @@ def CreatStartURLs_4():
     """
     res = []
     base_url = "http://www.moe.gov.cn/was5/web/search"
-    for i in range(1, 90+1):  #  1 to 90+1
-        payload = {'page':i, # total items 8928. -> total pages 8928/100 = 90
-                   'channelid': 277865, 'perpage':100, 'outlinepage':10, 'searchscope':'',
-                   'timescope':'', 'timescopecolumn':'', 'orderby':'-SCRQ', 'towcmurl':'', 'andsen':'',
-                   'total':'','orsen':'', 'exclude':''}
+    for i in range(1, 90+1):  # 1 to 90+1
+        payload = {'page': i,  # total items 8928. -> total pages 8928/100 = 90
+                   'channelid': 277865, 'perpage': 100, 'outlinepage': 10, 'searchscope': '',
+                   'timescope': '', 'timescopecolumn': '', 'orderby': '-SCRQ', 'towcmurl': '', 'andsen': '',
+                   'total': '', 'orsen': '', 'exclude': ''}
         res.append(base_url + '?' + urlencode(payload))
     return res
+
 
 def parser_2(page_url, page_html):
     """
@@ -57,14 +60,14 @@ def parser_2(page_url, page_html):
     # locate dom_li in html code
     tag_div = soup.find('div', id='wcmpagehtml').find_all('ul')
     for ul in tag_div:
-        if not ul.find('script'): # 排除<ul> <script/> </ul>
+        if not ul.find('script'):  # 排除<ul> <script/> </ul>
             for li in ul.children:
                 # todo 美化一下，找到去除空行的方法
                 # todo link txt date 任一一个为空 抛出异常
                 if li != '\n':
                     # todo 更好的方法locate<a>
                     attrs_dict = li.contents[1].attrs
-                    tmp = attrs_dict.get("title")     # 获取li下第一个tag里title的属性值 as dict(li.contents[1].attrs)["title"]
+                    tmp = attrs_dict.get("title")  # 获取li下第一个tag里title的属性值 as dict(li.contents[1].attrs)["title"]
                     if tmp == None:
                         tmp = li.contents[1].get_text()
                     title = fineName4Win(tmp)
@@ -72,6 +75,7 @@ def parser_2(page_url, page_html):
                     date = li.contents[0].get_text()
                     results.append([title, date, link])
     return results
+
 
 def parser_2_1(item, page_html):
     url = item[2]
@@ -101,12 +105,14 @@ def parser_2_1(item, page_html):
 
     return res
 
+
 def parser_3(page_url, page_html):
     """
     用于分析"教育部-> 重要文件-> 其他部门文件-> DOM<li>"
     :return results[[title, date, link],[   ],[   ]...]
     """
     return parser_2(page_url, page_html)
+
 
 def parser_3_1(item, page_html):
     url = item[2]
@@ -141,12 +147,14 @@ def parser_3_1(item, page_html):
 
     return res
 
+
 def parser_4(page_url, page_html):
     """
     用于分析"教育部-> 重要文件-> 财政部-> DOM<li>"
     :return results[[title, date, link],[   ],[   ]...]
     """
     return parser_2(page_url, page_html)
+
 
 def parser_4_1(item, page_html):
     url = item[2]
@@ -191,7 +199,6 @@ def parser_4_1(item, page_html):
     return res
 
 
-
 def fineName4Win(old_name):
     import re
     new_name = 'Error'
@@ -199,4 +206,3 @@ def fineName4Win(old_name):
     if old_name is not None:
         new_name = re.sub(rstr, "", old_name)
     return new_name
-

@@ -10,10 +10,10 @@ from serialization import out2File_txt
 
 
 def SetUp():
-    if not os.path.isdir(os.getcwd() + r'\APP_log'):
-        os.mkdir(os.getcwd() + r'\APP_log')
-    if not os.path.isdir(os.getcwd() + r'\APP_output'):
-        os.mkdir(os.getcwd() + r'\APP_output')
+    if not os.path.isdir(PATH_LOG_FOLDER):
+        os.mkdir(PATH_LOG_FOLDER)
+    if not os.path.isdir(PATH_OUTPUT_FOLDER):
+        os.mkdir(PATH_OUTPUT_FOLDER)
 
 
 

@@ -31,7 +31,7 @@ def out2File_txt(buffer, item):
     with open(path_full_file, 'w',
               encoding='utf-8') as resf:
         # resf.write(buffer)
-        time.sleep(8)
+        # time.sleep(8)
         print("        #%s serialised. %s" % (item[3], item[0]))
 
 
